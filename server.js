@@ -33,33 +33,23 @@ connection.connect(function(err) {
 });
 
 router.get('/', function(req, res) {
-  res.json({ message: 'Welcome to map app!' });
-  var sql = "CREATE TABLE customers (name VARCHAR(255), address VARCHAR(255))";
-  connection.query(sql, function (err, result) {
-    if (err) throw err;
-    console.log("Table created");
-  });
+  connection.query("SELECT * from gps_data_table", function(err, result, fields) {
+      if(err) throw err;
+      res.json(result)
+  })
 });
 
 router.post('/', function(req, res) {
     console.log("hello")
     let payload = {
-      time: req.body.time,
+      timeAdded: req.body.time,
       latitude: req.body.latitude,
       longitude: req.body.longitude
     }
-    // connection.query('INSERT INTO gps_data_table SET ?', payload, function(err, result) {
-    //   if(err) {
-    //     console.log(err);
-    //     res.send('Error');
-    //   }
-    //   else {
-    //     res.send('Success');
-    //   }
-    // });
-    connection.query("SELECT * FROM gps_data_table", function (err, result, fields) {
+    var sql = "INSERT INTO gps_data_table SET ?"
+    connection.query(sql, payload, function (err, rows) {
       if (err) throw err;
-      console.log(result);
+      res.json({message: "you posted successfully!!"})
     });
 })
 
