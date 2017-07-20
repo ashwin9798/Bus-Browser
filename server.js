@@ -4,6 +4,8 @@ var mysql = require('mysql');
 
 var app = express();
 
+//this creates a connection object which will later connect to mySQL database.
+//I used the ClearDB addon provided by Heroku for this.
 var connection = mysql.createConnection({
     host: 'us-cdbr-iron-east-03.cleardb.net',
     user: 'b53283652bc954',
@@ -11,6 +13,7 @@ var connection = mysql.createConnection({
     database: 'heroku_68e1a2399363654'
 })
 
+//body parser allows us to easily look at the json that is sent through the server.
 app.use(bodyParser.urlencoded({
   extended: true
 }));
@@ -21,6 +24,7 @@ var port = process.env.PORT || 3000;
 
 var router = express.Router();
 
+//connect to the port, as well as mySQL, and throw an err if the database is unreachable.
 connection.connect(function(err) {
    if (err)
       throw err
@@ -28,10 +32,12 @@ connection.connect(function(err) {
        console.log('Connected to MySQL');
        // Start the app when connection is ready
        app.listen(port);
-       console.log('Server listening on port 3000');
+       console.log('Server listening on port');
    }
 });
 
+//the web browser will make a get request at the root url since it is only a single page application.
+//The root url on heroku is: https://pure-hollows-72424.herokuapp.com/
 router.get('/', function(req, res) {
   connection.query("SELECT * from gps_data_table", function(err, result, fields) {
       if(err) throw err;
@@ -39,6 +45,8 @@ router.get('/', function(req, res) {
   })
 });
 
+//the raspberry pi will post data to the database through this post request at the same root url.
+//we will create a json object with three fields, and send it through http.
 router.post('/', function(req, res) {
     console.log("hello")
     let payload = {
