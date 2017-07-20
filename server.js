@@ -1,6 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var mysql = require('mysql');
+var cors = require('cors');
 
 var app = express();
 
@@ -19,6 +20,7 @@ app.use(bodyParser.urlencoded({
 }));
 
 app.use(bodyParser.json())
+app.use(cors())
 
 var port = process.env.PORT || 3000;
 
