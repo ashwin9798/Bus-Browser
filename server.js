@@ -41,10 +41,10 @@ connection.connect(function(err) {
 //the web browser will make a get request at the root url since it is only a single page application.
 //The root url on heroku is: https://pure-hollows-72424.herokuapp.com/
 router.get('/', function(req, res) {
-  connection.query("SELECT * from gps_data_table", function(err, result, fields) {
-      if(err) throw err;
-      res.json(result)
-  })
+    connection.query("SELECT * FROM gps_data_table WHERE id=(SELECT MAX(id) FROM gps_data_table)", function(err, result, fields) {
+        if(err) throw err;
+        res.json(result)
+    })
 });
 
 //the raspberry pi will post data to the database through this post request at the same root url.

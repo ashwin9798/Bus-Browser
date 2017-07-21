@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>GPS App JOS</title>
+  <meta name="description" content="The HTML5 Herald">
+  <meta name="author" content="SitePoint">
+  <style>
+      #map {
+        height: 400px;
+        width: 100%;
+       }
+    </style>
+  <!-- <link rel="stylesheet" href="css/styles.css?v=1.0"> -->
+
+  <!--[if lt IE 9]>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <h1> JOS Map App </h1>
+  <button>Send an HTTP GET request to a page and get the result back</button>
+  <script type="text/javascript" src = "js/jquery-3.2.1.min.js"></script>
+  <div id="map"></div>
+  <script async defer
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBsP7t2hwr44beDy60R9afSLaCwMKMhg8o&callback=initMap">
+  </script>
+  <script>
+  $(document).ready(function(){
+    $("button").click(function(){
+      $.get("http://pure-hollows-72424.herokuapp.com", function(data){
+          var obj = JSON.stringify(data);
+          var latitude, longitude;
+          // alert(obj)
+            for (var i = 30, len = obj.length; i < len; i++) {
+              if(obj.substring(i, i+8) == "latitude") {
+                  latitude = obj.substring(i+10, i+17);
+                  longitude = obj.substring(i+30, i+37);
+              }
+          }
+          initMap(parseFloat(latitude), parseFloat(longitude));
+      });
+    });
+  });
+  function initMap(latitude, longitude) {
+    var uluru = {lat: latitude, lng: longitude};
+    var map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 4,
+      center: uluru
+    });
+    var marker = new google.maps.Marker({
+      position: uluru,
+      map: map
+    });
+  }
+  </script>
+</body>
+</html>
