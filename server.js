@@ -41,7 +41,7 @@ connection.connect(function(err) {
 //the web browser will make a get request at the root url since it is only a single page application.
 //The root url on heroku is: https://pure-hollows-72424.herokuapp.com/
 router.get('/', function(req, res) {
-    connection.query("(SELECT * FROM table ORDER BY id DESC LIMIT 5) ORDER BY id ASC", function(err, result, fields) {
+    connection.query("(SELECT * FROM gps_data_table ORDER BY id DESC LIMIT 5) ORDER BY id ASC", function(err, result, fields) {
         if(err) throw err;
         res.json(result)
     })

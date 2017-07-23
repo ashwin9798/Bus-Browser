@@ -31,7 +31,9 @@
   $(document).ready(function(){
     $("button").click(function(){
       $.get("http://pure-hollows-72424.herokuapp.com", function(data){
-          alert(data)
+          var o = JSON.parse(data)
+          alert(o)
+
           var obj = JSON.stringify(data);
           var latitude, longitude;
           for (var i = 30, len = obj.length; i < len; i++) {
