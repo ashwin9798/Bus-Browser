@@ -26,13 +26,15 @@
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBsP7t2hwr44beDy60R9afSLaCwMKMhg8o&callback=initMap">
   </script>
   <script>
+  // Make a get request to the server using ajax.
+  // Then get the latitude and longitude from the json string.
   $(document).ready(function(){
     $("button").click(function(){
       $.get("http://pure-hollows-72424.herokuapp.com", function(data){
+          alert(data)
           var obj = JSON.stringify(data);
           var latitude, longitude;
-          // alert(obj)
-            for (var i = 30, len = obj.length; i < len; i++) {
+          for (var i = 30, len = obj.length; i < len; i++) {
               if(obj.substring(i, i+8) == "latitude") {
                   latitude = obj.substring(i+10, i+17);
                   longitude = obj.substring(i+30, i+37);
