@@ -28,37 +28,33 @@
   $(document).ready(function(){
     $("button").click(function(){
       $.get("http://pure-hollows-72424.herokuapp.com", function(data){
-          var obj = JSON.stringify(data);
+          // var obj = JSON.stringify(data);
           var latitude, longitude;
-          for (var i = 30, len = obj.length; i < len; i++) {
-              if(obj.substring(i, i+8) == "latitude") {
-                  latitude = obj.substring(i+10, i+17);
-                  longitude = obj.substring(i+30, i+37);
-              }
+          var points = new Array();
+          points[0] = new google.maps.LatLng(23.455, 21.455)
+          console.log(points[0])
+          for(var i=0; i < data.length; i++) {
+              var obj = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3))
+              points[i] = obj
           }
-          initMap(parseFloat(latitude), parseFloat(longitude));
+          initMap(points)
       });
     });
   });
 
-  function initMap(latitude, longitude) {
-    var uluru = {lat: latitude, lng: longitude};
+  function initMap(points) {
+    var uluru = {lat: 32.456, lng: 31.456};
     var map = new google.maps.Map(document.getElementById('map'), {
       zoom: 4,
       center: uluru,
       mapTypeId: 'terrain'
     });
-    var marker = new google.maps.Marker({
-     position: uluru,
-     map: map
-   });
+  //   var marker = new google.maps.Marker({
+  //    position: uluru,
+  //    map: map
+  //  });
 
-    var flightPlanCoordinates = [
-        {lat: 37.772, lng: -122.214},
-        {lat: 21.291, lng: -157.821},
-        {lat: -18.142, lng: 178.431},
-        {lat: -27.467, lng: 153.027}
-    ];
+    var flightPlanCoordinates = points
     var flightPath = new google.maps.Polyline({
         path: flightPlanCoordinates,
         geodesic: true,
