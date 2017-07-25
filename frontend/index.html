@@ -31,11 +31,8 @@
           // var obj = JSON.stringify(data);
           var latitude, longitude;
           var points = new Array();
-          points[0] = new google.maps.LatLng(23.455, 21.455)
-          console.log(points[0])
           for(var i=0; i < data.length; i++) {
-              var obj = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3))
-              points[i] = obj
+              points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3))
           }
           initMap(points)
       });
@@ -43,16 +40,16 @@
   });
 
   function initMap(points) {
-    var uluru = {lat: 32.456, lng: 31.456};
+    var uluru = points[(points.length)-1];
     var map = new google.maps.Map(document.getElementById('map'), {
       zoom: 4,
       center: uluru,
       mapTypeId: 'terrain'
     });
-  //   var marker = new google.maps.Marker({
-  //    position: uluru,
-  //    map: map
-  //  });
+    var marker = new google.maps.Marker({
+     position: uluru,
+     map: map
+   });
 
     var flightPlanCoordinates = points
     var flightPath = new google.maps.Polyline({
