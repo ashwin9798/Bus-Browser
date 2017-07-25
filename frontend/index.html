@@ -26,16 +26,30 @@
   // Make a get request to the server using ajax.
   // Then get the latitude and longitude from the json string.
   $(document).ready(function(){
+    setTimeout(function() {
+      $("#button").trigger('click');
+    }, 5000);
     $("button").click(function(){
-      $.get("http://pure-hollows-72424.herokuapp.com", function(data){
-          // var obj = JSON.stringify(data);
-          var latitude, longitude;
-          var points = new Array();
-          for(var i=0; i < data.length; i++) {
-              points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3))
+      $.ajax({
+          url: "http://pure-hollows-72424.herokuapp.com",
+          type: 'GET',
+          success: function(data){
+            var points = new Array();
+            if(data.length == 0){
+              $("#error").html("Oops, no data on the requested bus :(");
+            }
+            else{
+              for(var i=0; i < data.length; i++) {
+                points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3))
+              }
+              initMap(points)
+            }
+          },
+          error: function(data) {
+            alert('it seems the server is unresponsive, please try again later');
           }
-          initMap(points)
       });
+
     });
   });
 
@@ -51,9 +65,9 @@
      map: map
    });
 
-    var flightPlanCoordinates = points
+    var pathCoords = points
     var flightPath = new google.maps.Polyline({
-        path: flightPlanCoordinates,
+        path: pathCoords,
         geodesic: true,
         strokeColor: '#FF0000',
         strokeOpacity: 1.0,
@@ -65,5 +79,6 @@
   <script async defer
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAix3M854--ZyLZTmhKKFkoodebroJTUP8&callback=initMap">
   </script>
+  <div id="error"></div>
 </body>
 </html>
