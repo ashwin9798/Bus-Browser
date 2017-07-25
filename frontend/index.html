@@ -29,12 +29,14 @@
     setTimeout(function() {
       $("#button").trigger('click');
     }, 5000);
+
     $("button").click(function(){
       $.ajax({
           url: "http://pure-hollows-72424.herokuapp.com",
           type: 'GET',
           success: function(data){
             var points = new Array();
+            var userPoint;
             if(data.length == 0){
               $("#error").html("Oops, no data on the requested bus :(");
             }
@@ -42,7 +44,12 @@
               for(var i=0; i < data.length; i++) {
                 points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3))
               }
-              initMap(points)
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    userPoint = new google.maps.LatLng(position.coords.latitude, position.coords.longitude)
+                });
+              }
+              initMap(points, userPoint)
             }
           },
           error: function(data) {
@@ -53,17 +60,19 @@
     });
   });
 
-  function initMap(points) {
-    var uluru = points[(points.length)-1];
+  function initMap(points, userPoint) {
+    var uluru = points[(points.length)-1];  //the last point recorded
+    // var distanceToUser = google.maps.geometry.spherical.computeDistanceBetween(uluru, userPoint)
     var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 4,
+      zoom: 6,
       center: uluru,
       mapTypeId: 'terrain'
     });
+
     var marker = new google.maps.Marker({
      position: uluru,
      map: map
-   });
+    });
 
     var pathCoords = points
     var flightPath = new google.maps.Polyline({
@@ -74,11 +83,13 @@
         strokeWeight: 2
     });
     flightPath.setMap(map);
+    $("#distance").html("The bus is" + distanceToUser + " meters away")
   }
   </script>
   <script async defer
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAix3M854--ZyLZTmhKKFkoodebroJTUP8&callback=initMap">
   </script>
   <div id="error"></div>
+  <div id="distance"></div>
 </body>
 </html>
