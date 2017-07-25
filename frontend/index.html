@@ -22,6 +22,9 @@
   <button>Send an HTTP GET request to a page and get the result back</button>
   <script type="text/javascript" src = "js/jquery-3.2.1.min.js"></script>
   <div id="map"></div>
+  <script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAix3M854--ZyLZTmhKKFkoodebroJTUP8&libraries=geometry">
+  </script>
   <script>
   // Make a get request to the server using ajax.
   // Then get the latitude and longitude from the json string.
@@ -31,6 +34,7 @@
     }, 5000);
 
     $("button").click(function(){
+
       $.ajax({
           url: "http://pure-hollows-72424.herokuapp.com",
           type: 'GET',
@@ -40,16 +44,17 @@
             if(data.length == 0){
               $("#error").html("Oops, no data on the requested bus :(");
             }
-            else{
+            else {
               for(var i=0; i < data.length; i++) {
                 points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3))
               }
               if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    userPoint = new google.maps.LatLng(position.coords.latitude, position.coords.longitude)
+                navigator.geolocation.getCurrentPosition(function() {
+                    console.log(position.coords.latitude)
+                    userPoint = new google.maps.LatLng(parseFloat(position.coords.latitude), parseFloat(position.coords.longitude))
+                    initMap(points, userPoint)
                 });
               }
-              initMap(points, userPoint)
             }
           },
           error: function(data) {
@@ -62,7 +67,7 @@
 
   function initMap(points, userPoint) {
     var uluru = points[(points.length)-1];  //the last point recorded
-    // var distanceToUser = google.maps.geometry.spherical.computeDistanceBetween(uluru, userPoint)
+    var distanceToUser = google.maps.geometry.spherical.computeDistanceBetween(uluru, userPoint)
     var map = new google.maps.Map(document.getElementById('map'), {
       zoom: 6,
       center: uluru,
@@ -83,12 +88,17 @@
         strokeWeight: 2
     });
     flightPath.setMap(map);
-    $("#distance").html("The bus is" + distanceToUser + " meters away")
+    if(userPoint == 0) {
+      $("#distance").html("I can't get your position, but you can track the bus above")
+    }
+    else {
+      $("#distance").html("The bus is " + distanceToUser + " meters away")
+    }
   }
   </script>
-  <script async defer
+  <!-- <script async defer
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAix3M854--ZyLZTmhKKFkoodebroJTUP8&callback=initMap">
-  </script>
+  </script> -->
   <div id="error"></div>
   <div id="distance"></div>
 </body>
