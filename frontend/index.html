@@ -85,10 +85,11 @@
       zoom: 6,
       center: uluru,
     });
-    
+
     var marker = new google.maps.Marker({
       position: uluru,
-      map: map
+      map: map,
+      icon: 'busIcon.png'
     });
 
     var pathCoords = points
@@ -100,7 +101,7 @@
         strokeWeight: 2
     });
     runSnapToRoad(flightPath.getPath())
-    // flightPath.setMap(map);
+
     if(userPoint == 0) {
       $("#distance").html("I can't get your position, but you can track the bus above")
     }
