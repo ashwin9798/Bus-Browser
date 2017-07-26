@@ -23,7 +23,7 @@
   <script type="text/javascript" src = "js/jquery-3.2.1.min.js"></script>
   <div id="map"></div>
   <script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAix3M854--ZyLZTmhKKFkoodebroJTUP8&libraries=geometry">
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAix3M854--ZyLZTmhKKFkoodebroJTUP8&libraries=geometry,drawing,places">
   </script>
   <script>
   // Make a get request to the server using ajax.
@@ -49,7 +49,7 @@
                 points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3))
               }
               if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function() {
+                navigator.geolocation.getCurrentPosition(function(position) {
                     console.log(position.coords.latitude)
                     userPoint = new google.maps.LatLng(parseFloat(position.coords.latitude), parseFloat(position.coords.longitude))
                     initMap(points, userPoint)
@@ -71,12 +71,11 @@
     var map = new google.maps.Map(document.getElementById('map'), {
       zoom: 6,
       center: uluru,
-      mapTypeId: 'terrain'
     });
 
     var marker = new google.maps.Marker({
-     position: uluru,
-     map: map
+      position: uluru,
+      map: map
     });
 
     var pathCoords = points
@@ -87,13 +86,51 @@
         strokeOpacity: 1.0,
         strokeWeight: 2
     });
-    flightPath.setMap(map);
+    runSnapToRoad(flightPath)
+    // flightPath.setMap(map);
     if(userPoint == 0) {
       $("#distance").html("I can't get your position, but you can track the bus above")
     }
     else {
       $("#distance").html("The bus is " + distanceToUser + " meters away")
     }
+  }
+
+  function runSnapToRoad(path) {
+    var pathValues = [];
+    var len = google.maps.geometry.spherical.computeLength(path.getPath())
+    for (var i = 0; i < len; i++) {
+      pathValues.push(path.getAt(i).toUrlValue());
+    }
+    $.get('https://roads.googleapis.com/v1/snapToRoads', {
+      interpolate: true,
+      key: 'AIzaSyAix3M854--ZyLZTmhKKFkoodebroJTUP8',
+      path: pathValues.join('|')
+    }, function(data) {
+      processSnapToRoadResponse(data);
+      drawSnappedPolyline();
+    });
+  }
+  function processSnapToRoadResponse(data) {
+    snappedCoordinates = [];
+    placeIdArray = [];
+    for (var i = 0; i < data.snappedPoints.length; i++) {
+      var latlng = new google.maps.LatLng(
+        data.snappedPoints[i].location.latitude,
+        data.snappedPoints[i].location.longitude);
+        snappedCoordinates.push(latlng);
+        placeIdArray.push(data.snappedPoints[i].placeId);
+      }
+  }
+
+  function drawSnappedPolyline() {
+    var snappedPolyline = new google.maps.Polyline({
+      path: snappedCoordinates,
+      strokeColor: 'black',
+      strokeWeight: 3
+    });
+    snappedPolyline.setMap(map);
+    polylines.push(snappedPolyline);
   }
   </script>
   <!-- <script async defer
