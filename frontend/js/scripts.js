@@ -1,23 +1,30 @@
 $(document).ready(function(){
+  //auto refresh the page every 5 seconds, for incoming coordinates.
   setTimeout(function() {
     $("#button").trigger('click');
   }, 5000);
 
+  //run this function when the button is clicked.
   $("button").click(function(){
-
+    //make an ajax GET request to the heroku server which will load from sql.
     $.ajax({
         url: "http://pure-hollows-72424.herokuapp.com",
         type: 'GET',
         success: function(data){
+          //store the gps coordinates from the object into an array.
           var points = new Array();
+          //userPoint stores the position of the user (received from browser)
           var userPoint;
+          //error message for when the database request is empty
           if(data.length == 0){
             $("#error").html("Oops, no data on the requested bus :(");
           }
           else {
+            //store in the points array as LatLng objects, which are required for API.
             for(var i=0; i < data.length; i++) {
               points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3))
             }
+            //this block gets the position of the user from the browser.
             if (navigator.geolocation) {
               navigator.geolocation.getCurrentPosition(function(position) {
                   console.log(position.coords.latitude)
@@ -27,6 +34,7 @@ $(document).ready(function(){
             }
           }
         },
+        //error handler for server being unresponsive.
         error: function(data) {
           alert('it seems the server is unresponsive, please try again later');
         }
