@@ -86,7 +86,7 @@
         strokeOpacity: 1.0,
         strokeWeight: 2
     });
-    runSnapToRoad(flightPath)
+    runSnapToRoad(flightPath.getPath())
     // flightPath.setMap(map);
     if(userPoint == 0) {
       $("#distance").html("I can't get your position, but you can track the bus above")
@@ -98,13 +98,15 @@
 
   function runSnapToRoad(path) {
     var pathValues = [];
-    var len = google.maps.geometry.spherical.computeLength(path.getPath())
-    for (var i = 0; i < len; i++) {
+    console.log(path)
+    var len = google.maps.geometry.spherical.computeLength(path)
+    console.log(len)
+    for (var i = 0; i < path.b.length; i++) {
       pathValues.push(path.getAt(i).toUrlValue());
     }
     $.get('https://roads.googleapis.com/v1/snapToRoads', {
       interpolate: true,
-      key: 'AIzaSyAix3M854--ZyLZTmhKKFkoodebroJTUP8',
+      key: 'AIzaSyCgtJHLDHcpdKKN68yTKMZxiQczNeVhMxc',
       path: pathValues.join('|')
     }, function(data) {
       processSnapToRoadResponse(data);
