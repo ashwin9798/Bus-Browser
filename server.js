@@ -7,11 +7,21 @@ var app = express();
 
 //this creates a connection object which will later connect to mySQL database.
 //I used the ClearDB addon provided by Heroku for this.
-var connection = mysql.createConnection({
-    host: 'us-cdbr-iron-east-03.cleardb.net',
-    user: 'b53283652bc954',
-    password: '86127b66',
-    database: 'heroku_68e1a2399363654'
+// var connection = mysql.createConnection({
+//     host: 'us-cdbr-iron-east-03.cleardb.net',
+//     user: 'b53283652bc954',
+//     password: '86127b66',
+//     database: 'heroku_68e1a2399363654'
+// })
+
+var c;
+
+var pool = mysql.createPool({
+    connectionLimit: 10,
+    host            : 'us-cdbr-iron-east-03.cleardb.net',
+    user            : 'b53283652bc954',
+    password        : '86127b66',
+    database        : 'heroku_68e1a2399363654'
 })
 
 //body parser allows us to easily look at the json that is sent through the server.
@@ -27,21 +37,32 @@ var port = process.env.PORT || 3000;
 var router = express.Router();
 
 //connect to the port, as well as mySQL, and throw an err if the database is unreachable.
-connection.connect(function(err) {
-   if (err)
+// connection.connect(function(err) {
+//    if (err)
+//       throw err
+//    else {
+//        console.log('Connected to MySQL');
+//        // Start the app when connection is ready
+//        app.listen(port);
+//        console.log('Server listening on port');
+//    }
+// });
+
+pool.getConnection(function(err, connection) {
+    if (err)
       throw err
-   else {
-       console.log('Connected to MySQL');
-       // Start the app when connection is ready
-       app.listen(port);
-       console.log('Server listening on port');
-   }
-});
+    else {
+      c = connection;
+      // Start the app when connection is ready
+    }
+})
+
+app.listen(port);
 
 //the web browser will make a get request at the root url since it is only a single page application.
 //The root url on heroku is: https://pure-hollows-72424.herokuapp.com/
 router.get('/', function(req, res) {
-    connection.query("(SELECT * FROM gps_data_table ORDER BY id DESC LIMIT 5) ORDER BY id ASC", function(err, result, fields) {
+    c.query("(SELECT * FROM gps_data_table ORDER BY id DESC LIMIT 5) ORDER BY id ASC", function(err, result, fields) {
         if(err) throw err;
         res.json(result)
     })
@@ -57,7 +78,7 @@ router.post('/', function(req, res) {
       longitude: req.body.longitude
     }
     var sql = "INSERT INTO gps_data_table SET ?"
-    connection.query(sql, payload, function (err, rows) {
+    c.query(sql, payload, function (err, rows) {
       if (err) throw err;
       res.json({message: "you posted successfully!!"})
     });
