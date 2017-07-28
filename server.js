@@ -29,17 +29,8 @@ app.use(cors())
 var port = process.env.PORT || 3000;
 
 var router = express.Router();
-//
-// pool.getConnection(function(err, c) {
-//     if (err)
-//       throw err
-//     else {
-//       c = connection;
-//       console.log('Connected to MySQL');
-//     }
-// })
 
-
+//whenever the sql server closes the connection, this function will reconnect
 function handleDisconnect(client) {
   client.on('error', function (error) {
     if (!error.fatal) return;

@@ -21,6 +21,7 @@
   <h1> JOS Map App </h1>
   <button>Track the bus</button>
   <script type="text/javascript" src = "js/jquery-3.2.1.min.js"></script>
+  <script src="https://apis.google.com/js/api.js" type="text/javascript"></script>
   <div id="map"></div>
   <script
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAix3M854--ZyLZTmhKKFkoodebroJTUP8&libraries=geometry,drawing,places">
@@ -67,6 +68,7 @@
     });
   });
 
+  //get user position from browser
   function getPos() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(function(position) {
@@ -77,6 +79,7 @@
   }
   var map;
 
+  //create the google map, with all its components
   function initMap(points, userPoint) {
     var uluru = points[(points.length)-1];  //the last point recorded
     var distanceToUser = google.maps.geometry.spherical.computeDistanceBetween(uluru, userPoint)
@@ -88,12 +91,14 @@
       center: uluru,
     });
 
+    //bus icon marker
     var marker = new google.maps.Marker({
       position: uluru,
       map: map,
       icon: 'busIcon.png'
     });
 
+    //path of the bus is traced by coordinates.
     var pathCoords = points
     var flightPath = new google.maps.Polyline({
         path: pathCoords,
@@ -102,6 +107,7 @@
         strokeOpacity: 1.0,
         strokeWeight: 2
     });
+
     runSnapToRoad(flightPath.getPath());
     timeToUser(uluru, userPoint);
 
@@ -113,6 +119,8 @@
     }
   }
 
+  //this will snap the otherwise jagged polyline to the shape of the road.
+  //makes path trace look more realistic.
   function runSnapToRoad(path) {
     var pathValues = [];
     console.log(path)
@@ -131,6 +139,8 @@
       drawSnappedPolyline();
     });
   }
+
+  //helper functions for snapping the road.
   function processSnapToRoadResponse(data) {
     snappedCoordinates = [];
     placeIdArray = [];
@@ -152,9 +162,8 @@
     snappedPolyline.setMap(map)
   }
 
+  //calculate how far away the bus is from the user using distance matrix.
   function timeToUser(mostRecentPoint, destination) {
-
-
     $.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
       origins: mostRecentPoint.toUrlValue(),
       destinations: destination.toUrlValue(),
