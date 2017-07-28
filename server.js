@@ -5,6 +5,7 @@ var cors = require('cors');
 
 var app = express();
 
+//database configuration on Heroku ClearDB
 var db_config = {
     host            : 'us-cdbr-iron-east-03.cleardb.net',
     user            : 'b53283652bc954',
@@ -12,18 +13,10 @@ var db_config = {
     database        : 'heroku_68e1a2399363654'
 };
 
-// var connection = mysql.createConnection(db_config);
-
+//this is the client that will open the connection
 var mysqlClient = mysql.createConnection(db_config);
 handleDisconnect(mysqlClient);
 
-// var pool = mysql.createPool({
-//     connectionLimit: 10,
-//     host            : 'us-cdbr-iron-east-03.cleardb.net',
-//     user            : 'b53283652bc954',
-//     password        : '86127b66',
-//     database        : 'heroku_68e1a2399363654'
-// })
 
 //body parser allows us to easily look at the json that is sent through the server.
 app.use(bodyParser.urlencoded({

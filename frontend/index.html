@@ -54,11 +54,11 @@
               for(var i=0; i < data.length; i++) {
                 points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3))
               }
-              //this block gets the position of the user from the browser.
+              //this block gets the position of the user from the browser. Hardcoded right now.
               initMap(points, new google.maps.LatLng(23.431, 73.478))
             }
           },
-          //error handler for serv
+          //error handler for server connection
           error: function(data) {
             alert('it seems the server is unresponsive, please try again later');
           }
@@ -102,7 +102,8 @@
         strokeOpacity: 1.0,
         strokeWeight: 2
     });
-    runSnapToRoad(flightPath.getPath())
+    runSnapToRoad(flightPath.getPath());
+    timeToUser(uluru, userPoint);
 
     if(userPoint == 0) {
       $("#distance").html("I can't get your position, but you can track the bus above")
@@ -120,6 +121,7 @@
     for (var i = 0; i < path.b.length; i++) {
       pathValues.push(path.getAt(i).toUrlValue());
     }
+    console.log(pathValues)
     $.get('https://roads.googleapis.com/v1/snapToRoads', {
       interpolate: true,
       key: 'AIzaSyCgtJHLDHcpdKKN68yTKMZxiQczNeVhMxc',
@@ -148,6 +150,18 @@
       strokeWeight: 3
     });
     snappedPolyline.setMap(map)
+  }
+
+  function timeToUser(mostRecentPoint, destination) {
+
+
+    $.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
+      origins: mostRecentPoint.toUrlValue(),
+      destinations: destination.toUrlValue(),
+      key: 'AIzaSyCgtJHLDHcpdKKN68yTKMZxiQczNeVhMxc'
+    }, function(data) {
+      console.log(data)
+    });
   }
   </script>
   <div id="error"></div>
