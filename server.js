@@ -12,7 +12,10 @@ var db_config = {
     database        : 'heroku_68e1a2399363654'
 };
 
-var connection = mysql.createConnection(db_config);
+// var connection = mysql.createConnection(db_config);
+
+var mysqlClient = mysql.createConnection(db_config);
+handleDisconnect(mysqlClient);
 
 // var pool = mysql.createPool({
 //     connectionLimit: 10,
@@ -34,7 +37,7 @@ var port = process.env.PORT || 3000;
 
 var router = express.Router();
 //
-// pool.getConnection(function(err, connection) {
+// pool.getConnection(function(err, c) {
 //     if (err)
 //       throw err
 //     else {
@@ -43,76 +46,26 @@ var router = express.Router();
 //     }
 // })
 
-connection.connect(function(err){
-    if(err) {
-        // mysqlErrorHandling(connection, err);
-        console.log("\n\t *** Cannot establish a connection with the database. ***");
-        connection = reconnect(connection);
-    }else {
-        console.log("\n\t *** New connection established with the database. ***")
-    }
-});
 
-function reconnect(connection){
-    console.log("\n New connection tentative...");
-    //- Destroy the current connection variable
-    if(connection) connection.destroy();
+function handleDisconnect(client) {
+  client.on('error', function (error) {
+    if (!error.fatal) return;
+    if (error.code !== 'PROTOCOL_CONNECTION_LOST') throw err;
 
-    //- Create a new one
-    var connection = mysql.createConnection(db_config);
+    console.error('> Re-connecting lost MySQL connection: ' + error.stack);
 
-    //- Try to reconnect
-    connection.connect(function(err){
-        if(err) {
-            //- Try to connect every 2 seconds.
-            setTimeout(reconnect, 2000);
-        }else {
-            console.log("\n\t *** New connection established with the database. ***")
-            return connection;
-        }
-    });
-}
-
-connection.on('error', function(err) {
-    //- The server close the connection.
-    if(err.code === "PROTOCOL_CONNECTION_LOST"){
-        console.log("/!\\ Cannot establish a connection with the database. /!\\ ("+err.code+")");
-        connection = reconnect(connection);
-    }
-
-    //- Connection in closing
-    else if(err.code === "PROTOCOL_ENQUEUE_AFTER_QUIT"){
-        console.log("/!\\ Cannot establish a connection with the database. /!\\ ("+err.code+")");
-        connection = reconnect(connection);
-    }
-
-    //- Fatal error : connection variable must be recreated
-    else if(err.code === "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR"){
-        console.log("/!\\ Cannot establish a connection with the database. /!\\ ("+err.code+")");
-        connection = reconnect(connection);
-    }
-
-    //- Error because a connection is already being established
-    else if(err.code === "PROTOCOL_ENQUEUE_HANDSHAKE_TWICE"){
-        console.log("/!\\ Cannot establish a connection with the database. /!\\ ("+err.code+")");
-    }
-
-    //- Anything else
-    else{
-        console.log("/!\\ Cannot establish a connection with the database. /!\\ ("+err.code+")");
-        connection = reconnect(connection);
-    }
-
-});
+    mysqlClient = mysql.createConnection(client.config);
+    handleDisconnect(mysqlClient);
+    mysqlClient.connect();
+  });
+};
 
 app.listen(port);
 
 //the web browser will make a get request at the root url since it is only a single page application.
 //The root url on heroku is: https://pure-hollows-72424.herokuapp.com/
 router.get('/', function(req, res) {
-    if(connection == null)
-      connection = reconnect(connection)
-    connection.query("(SELECT * FROM gps_data_table ORDER BY id DESC LIMIT 5) ORDER BY id ASC", function(err, result, fields) {
+    mysqlClient.query("(SELECT * FROM gps_data_table ORDER BY id DESC LIMIT 5) ORDER BY id ASC", function(err, result, fields) {
         if(err) throw err;
         res.json(result)
     })
@@ -121,8 +74,6 @@ router.get('/', function(req, res) {
 //the raspberry pi will post data to the database through this post request at the same root url.
 //we will create a json object with three fields, and send it through http.
 router.post('/', function(req, res) {
-    if(connection == null)
-      connection = reconnect(connection)
     console.log("hello")
     let payload = {
       timeAdded: req.body.time,
@@ -130,7 +81,7 @@ router.post('/', function(req, res) {
       longitude: req.body.longitude
     }
     var sql = "INSERT INTO gps_data_table SET ?"
-    connection.query(sql, payload, function (err, rows) {
+    mysqlClient.query(sql, payload, function (err, rows) {
       if (err) throw err;
       res.json({message: "you posted successfully!!"})
     });
