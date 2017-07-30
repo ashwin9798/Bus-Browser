@@ -92,11 +92,17 @@
     });
 
     //bus icon marker
-    var marker = new google.maps.Marker({
+    var busMarker = new google.maps.Marker({
       position: uluru,
       map: map,
       icon: 'busIcon.png'
     });
+
+    var personMarker = new google.maps.Marker({
+      position: userPoint,
+      map: map,
+      icon: 'personIcon.png'
+    })
 
     //path of the bus is traced by coordinates.
     var pathCoords = points
