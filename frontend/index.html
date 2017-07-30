@@ -10,6 +10,13 @@
         height: 400px;
         width: 100%;
        }
+      table, th, td {
+        margin-top: 20px;
+        border: 1px solid black;
+      }
+      #access {
+        margin-bottom: 20px; /* or whatever */
+      }
     </style>
   <!-- <link rel="stylesheet" href="css/styles.css?v=1.0"> -->
 
@@ -51,9 +58,13 @@
               $("#error").html("Oops, no data on the requested bus :(");
             }
             else {
+              var markup;
               //store in the points array as LatLng objects, which are required for API.
               for(var i=0; i < data.length; i++) {
-                points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3))
+                points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3));
+                markup = '<tr><td>' + data[i].timeAdded + '</td><td>' + data[i].latitude + '</td><td>' + data[i].longitude + '</td><td></tr>';
+                console.log(markup);
+                $('#busHistory tbody').append(markup);
               }
               //this block gets the position of the user from the browser. Hardcoded right now.
               initMap(points, new google.maps.LatLng(23.431, 73.478))
@@ -181,5 +192,17 @@
   </script>
   <div id="error"></div>
   <div id="distance"></div>
+  <table id="busHistory">
+    Bus History:
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
 </body>
 </html>
