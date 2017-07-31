@@ -67,7 +67,7 @@
                 $('#busHistory tbody').append(markup);
               }
               //this block gets the position of the user from the browser. Hardcoded right now.
-              initMap(points, new google.maps.LatLng(23.431, 73.478))
+              initMap(points, new google.maps.LatLng(22.258, 114.192))
             }
           },
           //error handler for server connection
@@ -132,7 +132,7 @@
       $("#distance").html("I can't get your position, but you can track the bus above")
     }
     else {
-      $("#distance").html("The bus is " + distanceToUser + " meters away")
+      $("#distance").html("The bus is " + timeToDest + " away")
     }
   }
 
@@ -181,12 +181,16 @@
 
   //calculate how far away the bus is from the user using distance matrix.
   function timeToUser(mostRecentPoint, destination) {
-    $.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
-      origins: mostRecentPoint.toUrlValue(),
-      destinations: destination.toUrlValue(),
-      key: 'AIzaSyCgtJHLDHcpdKKN68yTKMZxiQczNeVhMxc'
+    var time;
+    var service = new google.maps.DistanceMatrixService();
+    service.getDistanceMatrix(
+    {
+      origins: [mostRecentPoint],
+      destinations: [destination],
+      travelMode: 'DRIVING'
     }, function(data) {
-      console.log(data)
+        time = data.rows[0].elements[0].duration.text
+        $("#distance").html("The bus is " + time + " away")
     });
   }
   </script>
