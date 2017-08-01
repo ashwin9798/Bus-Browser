@@ -1,10 +1,23 @@
 $(document).ready(function(){
   //auto refresh the page every 5 seconds, for incoming coordinates.
-  setInterval(function() {
-    $("#trackBusButton").trigger('click');
-  }, 10000);
+  // setInterval(function() {
+  //   $("#trackBusButton").trigger('click');
+  // }, 10000);
 
-  var timeDatabase = new Array();
+
+  ////////////////////////////////////////
+  // GLOBALS!!!!
+  /////////////////////////////////////////////
+  var pointsDatabase = new Array();
+  var flightPath = new Array();
+
+  //also includes:
+
+  //snappedPolyline
+  //snappedCoordinates
+  
+
+  //////////////////////////////////////////////////
 
   //get user position from browser
   function getPos() {
@@ -47,7 +60,7 @@ $(document).ready(function(){
 
     //path of the bus is traced by coordinates.
     var pathCoords = points
-    var flightPath = new google.maps.Polyline({
+    flightPath[0] = new google.maps.Polyline({
         path: pathCoords,
         geodesic: true,
         strokeColor: '#FF0000',
@@ -117,7 +130,7 @@ $(document).ready(function(){
 
     //////////////////////////////////////////////////////////////////////
 
-    runSnapToRoad(flightPath.getPath());
+    runSnapToRoad(flightPath[0].getPath());
     timeToUser(uluru, userPoint);
 
     if(userPoint == 0) {
@@ -132,9 +145,7 @@ $(document).ready(function(){
   //makes path trace look more realistic.
   function runSnapToRoad(path) {
     var pathValues = [];
-    console.log(path)
     var len = google.maps.geometry.spherical.computeLength(path)
-    console.log(len)
     for (var i = 0; i < path.b.length; i++) {
       pathValues.push(path.getAt(i).toUrlValue());
     }
@@ -163,7 +174,7 @@ $(document).ready(function(){
   }
 
   function drawSnappedPolyline() {
-    var snappedPolyline = new google.maps.Polyline({
+    snappedPolyline = new google.maps.Polyline({
       path: snappedCoordinates,
       strokeColor: 'red',
       strokeWeight: 3
@@ -207,15 +218,15 @@ $(document).ready(function(){
             $('#busHistory tr:not(#header)').remove()
             //store in the points array as LatLng objects, which are required for API.
             for(var i=0; i < data.length; i++) {
-              if(i >= timeDatabase.length) {
-                  timeDatabase[i] = data[i].timeAdded
-                  $('#fromTime').append($('<option>', {
-                    value: timeDatabase[i],
-                    text: timeDatabase[i]
+              if(i >= pointsDatabase.length) {
+                  pointsDatabase[i] = data[i]
+                  $('#startTime').append($('<option>', {
+                    value: i,
+                    text: pointsDatabase[i].timeAdded
                   }))
-                  $('#toTime').append($('<option>', {
-                    value: timeDatabase[i],
-                    text: timeDatabase[i]
+                  $('#endTime').append($('<option>', {
+                    value: i,
+                    text: pointsDatabase[i].timeAdded
                   }))
               }
               points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3));
@@ -234,7 +245,25 @@ $(document).ready(function(){
   });
 
   $("#submitHistoryTracking").click(function(){
-    console.log($())
-  })
-
-});
+    var startTime = $('#startTime :selected')
+    var endTime = $('#endTime :selected')
+    if(startTime.val() >= endTime.val()) {
+      alert("invalid time interval")
+    }
+    else {
+      var slicedPath = new Array();
+      for(var i=startTime.val(); i<=endTime.val(); i++) {
+        slicedPath[i-startTime.val()] = new google.maps.LatLng(pointsDatabase[i].latitude, pointsDatabase[i].longitude)
+      }
+      flightPath[0] = new google.maps.Polyline({
+          path: slicedPath,
+          geodesic: true,
+          strokeColor: '#FF0000',
+          strokeOpacity: 1.0,
+          strokeWeight: 2
+      });
+      snappedPolyline.setMap(null);
+      runSnapToRoad(flightPath[0].getPath());
+    }
+  });
+})
