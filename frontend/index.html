@@ -92,6 +92,7 @@
         font-size: 16px;
         border: none;
         cursor: pointer;
+        width: 100px;
       }
 
       /* The container <div> - needed to position the dropdown content */
@@ -153,14 +154,32 @@
   </script>
   <div id="error"></div>
   <div id="distance"></div>
+  </br>
+  <div id="busHistorySelection">
+    Track the bus's path between particular times: </br> </br> From
+    <!-- <div class="dropdown">
+      <button class="dropbtn"></button>
+      <div class="dropdown-content">
+        <a href="#">Link 1</a>
+        <a href="#">Link 2</a>
+        <a href="#">Link 3</a>
+      </div>
+    </div> -->
 
-  <div class="dropdown">
-    <button class="dropbtn"> Track the bus between particular times </button>
-    <div class="dropdown-content">
-      <a href="#">Link 1</a>
-      <a href="#">Link 2</a>
-      <a href="#">Link 3</a>
-    </div>
+    <select id="fromTime">
+    </select>
+    To
+    <select id="toTime">
+    </select>
+    <!-- <div class="dropdown">
+      <button class="dropbtn"></button>
+      <div class="dropdown-content">
+        <a href="#">Link 1</a>
+        <a href="#">Link 2</a>
+        <a href="#">Link 3</a>
+      </div>
+    </div> -->
+    <button id="submitHistoryTracking"> Submit </button>
   </div>
 
   <table id="busHistory">
