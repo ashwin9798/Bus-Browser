@@ -10,12 +10,12 @@ $(document).ready(function(){
   /////////////////////////////////////////////
   var pointsDatabase = new Array();
   var flightPath = new Array();
-
+  var snappedPolyline;
+  var busMarker;
   //also includes:
 
-  //snappedPolyline
   //snappedCoordinates
-  
+
 
   //////////////////////////////////////////////////
 
@@ -46,7 +46,7 @@ $(document).ready(function(){
     });
 
     //bus icon marker
-    var busMarker = new google.maps.Marker({
+    busMarker = new google.maps.Marker({
       position: uluru,
       map: map,
       icon: 'busIcon.png'
@@ -251,10 +251,19 @@ $(document).ready(function(){
       alert("invalid time interval")
     }
     else {
+      $("#map").css({'border': '1px solid black', 'outline-color': 'red'});
       var slicedPath = new Array();
       for(var i=startTime.val(); i<=endTime.val(); i++) {
         slicedPath[i-startTime.val()] = new google.maps.LatLng(pointsDatabase[i].latitude, pointsDatabase[i].longitude)
       }
+
+      busMarker.setMap(null)
+      busMarker = new google.maps.Marker({
+        position: slicedPath[slicedPath.length-1],
+        map: map,
+        icon: 'busIcon.png'
+      });
+
       flightPath[0] = new google.maps.Polyline({
           path: slicedPath,
           geodesic: true,
@@ -262,6 +271,7 @@ $(document).ready(function(){
           strokeOpacity: 1.0,
           strokeWeight: 2
       });
+
       snappedPolyline.setMap(null);
       runSnapToRoad(flightPath[0].getPath());
     }
