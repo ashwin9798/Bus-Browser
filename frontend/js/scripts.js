@@ -1,11 +1,11 @@
 $(document).ready(function(){
   //auto refresh the page every 5 seconds, for incoming coordinates.
   setInterval(function() {
-    $("button").trigger('click');
+    $("#trackBusButton").trigger('click');
   }, 10000);
 
   //run this function when the button is clicked.
-  $("button").click(function(){
+  $("#trackBusButton").click(function(){
     //make an ajax GET request to the heroku server which will load from sql.
     console.log('im clicked!');
     $.ajax({
@@ -22,6 +22,7 @@ $(document).ready(function(){
           }
           else {
             var markup;
+            $('#busHistory tr:not(#header)').remove()
             //store in the points array as LatLng objects, which are required for API.
             for(var i=0; i < data.length; i++) {
               points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3));
