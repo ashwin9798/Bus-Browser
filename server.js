@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var mysql = require('mysql');
 var cors = require('cors');
+var path = require('path');
 
 var app = express();
 
@@ -25,6 +26,8 @@ app.use(bodyParser.urlencoded({
 
 app.use(bodyParser.json())
 app.use(cors())
+app.use(express.static(__dirname));
+
 
 var port = process.env.PORT || 3000;
 
@@ -49,15 +52,20 @@ app.listen(port);
 //the web browser will make a get request at the root url since it is only a single page application.
 //The root url on heroku is: https://pure-hollows-72424.herokuapp.com/
 router.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname + '/index.html'));
+});
+
+
+var dataRoute = router.route('/data')
+
+dataRoute.get(function(req, res) {
     mysqlClient.query("(SELECT * FROM gps_data_table ORDER BY id DESC LIMIT 5) ORDER BY id ASC", function(err, result, fields) {
         if(err) throw err;
         res.json(result)
     })
 });
 
-//the raspberry pi will post data to the database through this post request at the same root url.
-//we will create a json object with three fields, and send it through http.
-router.post('/', function(req, res) {
+dataRoute.post(function(req, res) {
     console.log("hello")
     let payload = {
       timeAdded: req.body.time,
@@ -70,6 +78,9 @@ router.post('/', function(req, res) {
       res.json({message: "you posted successfully!!"})
     });
 })
+
+//the raspberry pi will post data to the database through this post request at the same root url.
+//we will create a json object with three fields, and send it through http.
 
 app.use(router);
 

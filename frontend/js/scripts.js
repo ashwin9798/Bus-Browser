@@ -16,6 +16,7 @@ $(document).ready(function(){
 
   //auto refresh the page every 8 seconds, for incoming coordinates.
   setInterval(function() {
+    console.log("hi")
     if(isTrackingRealTime) {
       $("#trackBusButton").trigger('click');
     }
@@ -51,13 +52,13 @@ $(document).ready(function(){
     busMarker = new google.maps.Marker({
       position: uluru,
       map: map,
-      icon: 'busIcon.png'
+      icon: 'frontend/busIcon.png'
     });
 
     var personMarker = new google.maps.Marker({
       position: userPoint,
       map: map,
-      icon: 'personIcon.png'
+      icon: 'frontend/personIcon.png'
     })
 
     //path of the bus is traced by coordinates.
@@ -208,7 +209,7 @@ $(document).ready(function(){
     //make an ajax GET request to the heroku server which will load from sql.
     isTrackingRealTime = true;
     $.ajax({
-        url: "http://pure-hollows-72424.herokuapp.com",
+        url: "https://pure-hollows-72424.herokuapp.com/data",
         type: 'GET',
         success: function(data){
           //store the gps coordinates from the object into an array.
@@ -271,7 +272,7 @@ $(document).ready(function(){
       busMarker = new google.maps.Marker({
         position: slicedPath[slicedPath.length-1],
         map: map,
-        icon: 'busIcon.png'
+        icon: 'frontend/busIcon.png'
       });
 
       flightPath[0] = new google.maps.Polyline({
