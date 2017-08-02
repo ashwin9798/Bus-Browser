@@ -1,9 +1,4 @@
 $(document).ready(function(){
-  //auto refresh the page every 5 seconds, for incoming coordinates.
-  // setInterval(function() {
-  //   $("#trackBusButton").trigger('click');
-  // }, 10000);
-
 
   ////////////////////////////////////////
   // GLOBALS!!!!
@@ -12,12 +7,19 @@ $(document).ready(function(){
   var flightPath = new Array();
   var snappedPolyline;
   var busMarker;
+  var isTrackingRealTime = true;
   //also includes:
 
   //snappedCoordinates
 
-
   //////////////////////////////////////////////////
+
+  //auto refresh the page every 8 seconds, for incoming coordinates.
+  setInterval(function() {
+    if(isTrackingRealTime) {
+      $("#trackBusButton").trigger('click');
+    }
+  }, 8000);
 
   //get user position from browser
   function getPos() {
@@ -130,7 +132,7 @@ $(document).ready(function(){
 
     //////////////////////////////////////////////////////////////////////
 
-    runSnapToRoad(flightPath[0].getPath());
+    runSnapToRoad(flightPath[0].getPath(), true);
     timeToUser(uluru, userPoint);
 
     if(userPoint == 0) {
@@ -143,7 +145,7 @@ $(document).ready(function(){
 
   //this will snap the otherwise jagged polyline to the shape of the road.
   //makes path trace look more realistic.
-  function runSnapToRoad(path) {
+  function runSnapToRoad(path, isRealTime) {
     var pathValues = [];
     var len = google.maps.geometry.spherical.computeLength(path)
     for (var i = 0; i < path.b.length; i++) {
@@ -156,7 +158,11 @@ $(document).ready(function(){
       path: pathValues.join('|')
     }, function(data) {
       processSnapToRoadResponse(data);
-      drawSnappedPolyline();
+      var polylineColor = 'red';
+      if(!isRealTime) {
+        polylineColor = 'grey'
+      }
+      drawSnappedPolyline(polylineColor);
     });
   }
 
@@ -173,10 +179,10 @@ $(document).ready(function(){
       }
   }
 
-  function drawSnappedPolyline() {
+  function drawSnappedPolyline(color) {
     snappedPolyline = new google.maps.Polyline({
       path: snappedCoordinates,
-      strokeColor: 'red',
+      strokeColor: color,
       strokeWeight: 3
     });
     snappedPolyline.setMap(map)
@@ -200,7 +206,7 @@ $(document).ready(function(){
   //run this function when the button requesting the map is clicked.
   $("#trackBusButton").click(function(){
     //make an ajax GET request to the heroku server which will load from sql.
-    console.log('im clicked!');
+    isTrackingRealTime = true;
     $.ajax({
         url: "http://pure-hollows-72424.herokuapp.com",
         type: 'GET',
@@ -247,6 +253,10 @@ $(document).ready(function(){
   $("#submitHistoryTracking").click(function(){
     var startTime = $('#startTime :selected')
     var endTime = $('#endTime :selected')
+
+    //autorefresh should not happen now
+    isTrackingRealTime = false;
+
     if(startTime.val() >= endTime.val()) {
       alert("invalid time interval")
     }
@@ -267,13 +277,13 @@ $(document).ready(function(){
       flightPath[0] = new google.maps.Polyline({
           path: slicedPath,
           geodesic: true,
-          strokeColor: '#FF0000',
+          strokeColor: 'grey',
           strokeOpacity: 1.0,
           strokeWeight: 2
       });
 
       snappedPolyline.setMap(null);
-      runSnapToRoad(flightPath[0].getPath());
+      runSnapToRoad(flightPath[0].getPath(), false);
     }
   });
 })
