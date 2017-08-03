@@ -9,6 +9,8 @@ $(document).ready(function(){
   var busMarker;
   var personMarker;
   var isTrackingRealTime = true;
+  var lastPoint;
+  var userPoint;
   //also includes:
 
   //snappedCoordinates
@@ -87,21 +89,22 @@ $(document).ready(function(){
             console.log("Returned place contains no geometry");
             return;
           }
-          var icon = {
-            url: place.icon,
-            size: new google.maps.Size(71, 71),
-            origin: new google.maps.Point(0, 0),
-            anchor: new google.maps.Point(17, 34),
-            scaledSize: new google.maps.Size(25, 25)
-          };
+          // var icon = {
+          //   url: place.icon,
+          //   size: new google.maps.Size(71, 71),
+          //   origin: new google.maps.Point(0, 0),
+          //   anchor: new google.maps.Point(17, 34),
+          //   scaledSize: new google.maps.Size(25, 25)
+          // };
 
             // Create a marker for each place.
           markers.push(new google.maps.Marker({
             map: map,
-            icon: icon,
             title: place.name,
             position: place.geometry.location
           }));
+
+          timeToUser(lastPoint, new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng()), markers[0].title)
 
           if (place.geometry.viewport) {
             // Only geocodes have viewport.
@@ -116,10 +119,9 @@ $(document).ready(function(){
 
   //create the google map, with all its components
   function updateMap(points, userPoint) {
-    var uluru = points[(points.length)-1];  //the last point recorded
-    var distanceToUser = google.maps.geometry.spherical.computeDistanceBetween(uluru, userPoint)
+    lastPoint = points[(points.length)-1];  //the last point recorded
 
-    map.setCenter(uluru)
+    map.setCenter(lastPoint)
 
     //bus icon marker
 
@@ -129,7 +131,7 @@ $(document).ready(function(){
     }
 
     busMarker = new google.maps.Marker({
-      position: uluru,
+      position: lastPoint,
       map: map,
       icon: 'frontend/busIcon.png'
     });
@@ -158,7 +160,7 @@ $(document).ready(function(){
     //////////////////////////////////////////////////////////////////////
 
     runSnapToRoad(flightPath[0].getPath(), true);
-    timeToUser(uluru, userPoint);
+    timeToUser(lastPoint, userPoint, "");
 
     if(userPoint == 0) {
       $("#distance").html("I can't get your position, but you can track the bus above")
@@ -210,7 +212,7 @@ $(document).ready(function(){
   }
 
   //calculate how far away the bus is from the user using distance matrix.
-  function timeToUser(mostRecentPoint, destination) {
+  function timeToUser(mostRecentPoint, destination, destinationString) {
     var time;
     var service = new google.maps.DistanceMatrixService();
     service.getDistanceMatrix(
@@ -220,7 +222,10 @@ $(document).ready(function(){
       travelMode: 'DRIVING'
     }, function(data) {
         time = data.rows[0].elements[0].duration.text
-        $("#distance").html("The bus is " + time + " away")
+        if(destinationString == "")
+          $("#distance").html("The bus is " + time + " away from you")
+        else
+          $("#distance").html("The bus is " + time + " away from " + destinationString)
     });
   }
 
