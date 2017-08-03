@@ -22,6 +22,10 @@ $(document).ready(function(){
     }
   }, 8000);
 
+  setTimeout(function() {
+    initMap();
+  }, 100)
+
   //get user position from browser
   function getPos() {
     if (navigator.geolocation) {
@@ -36,18 +40,85 @@ $(document).ready(function(){
 
   $("#busHistory").hide()
 
+  function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+      scrollwheel: false,
+      zoomControl: true,
+      minZoom: 8,
+      maxZoom: 16,
+      zoom: 15,
+      center: new google.maps.LatLng(0,0)
+    });
+
+    ////////////////////////////////////////////////////////////////////
+    // SEARCH BOX
+    ////////////////////////////////////////////////////////////////////
+    var input = document.getElementById('pac-input');
+    var searchBox = new google.maps.places.SearchBox(input);
+    map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+    // Bias the SearchBox results towards current map's viewport.
+    map.addListener('bounds_changed', function() {
+        searchBox.setBounds(map.getBounds());
+    });
+
+    var markers = [];
+
+    searchBox.addListener('places_changed', function() {
+        var places = searchBox.getPlaces();
+
+        if (places.length == 0) {
+          return;
+        }
+
+          // Clear out the old markers.
+        markers.forEach(function(marker) {
+          marker.setMap(null);
+        });
+
+        markers = [];
+
+          // For each place, get the icon, name and location.
+        var bounds = new google.maps.LatLngBounds();
+        places.forEach(function(place) {
+
+          if (!place.geometry) {
+            console.log("Returned place contains no geometry");
+            return;
+          }
+          var icon = {
+            url: place.icon,
+            size: new google.maps.Size(71, 71),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(17, 34),
+            scaledSize: new google.maps.Size(25, 25)
+          };
+
+            // Create a marker for each place.
+          markers.push(new google.maps.Marker({
+            map: map,
+            icon: icon,
+            title: place.name,
+            position: place.geometry.location
+          }));
+
+          if (place.geometry.viewport) {
+            // Only geocodes have viewport.
+            bounds.union(place.geometry.viewport);
+          } else {
+            bounds.extend(place.geometry.location);
+          }
+        });
+        map.fitBounds(bounds);
+    });
+  }
+
   //create the google map, with all its components
-  function initMap(points, userPoint) {
+  function updateMap(points, userPoint) {
     var uluru = points[(points.length)-1];  //the last point recorded
     var distanceToUser = google.maps.geometry.spherical.computeDistanceBetween(uluru, userPoint)
 
-    map = new google.maps.Map(document.getElementById('map'), {
-      scrollwheel: false,
-      zoomControl: false,
-      zoom: 15,
-      center: uluru,
-    });
-
+    map.setCenter(uluru)
     //bus icon marker
     busMarker = new google.maps.Marker({
       position: uluru,
@@ -71,66 +142,6 @@ $(document).ready(function(){
         strokeWeight: 2
     });
 
-    ////////////////////////////////////////////////////////////////////
-    // SEARCH BOX
-    ////////////////////////////////////////////////////////////////////
-    // var input = document.getElementById('pac-input');
-    // var searchBox = new google.maps.places.SearchBox(input);
-    // map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-    //
-    // // Bias the SearchBox results towards current map's viewport.
-    // map.addListener('bounds_changed', function() {
-    //     searchBox.setBounds(map.getBounds());
-    // });
-    //
-    // searchBox.addListener('places_changed', function() {
-    //     var places = searchBox.getPlaces();
-    //
-    //     if (places.length == 0) {
-    //       return;
-    //     }
-    //
-    //       // Clear out the old markers.
-    //     markers.forEach(function(marker) {
-    //       marker.setMap(null);
-    //     });
-    //
-    //     markers = [];
-    //
-    //       // For each place, get the icon, name and location.
-    //     var bounds = new google.maps.LatLngBounds();
-    //     places.forEach(function(place) {
-    //
-    //       if (!place.geometry) {
-    //         console.log("Returned place contains no geometry");
-    //         return;
-    //       }
-    //       var icon = {
-    //         url: place.icon,
-    //         size: new google.maps.Size(71, 71),
-    //         origin: new google.maps.Point(0, 0),
-    //         anchor: new google.maps.Point(17, 34),
-    //         scaledSize: new google.maps.Size(25, 25)
-    //       };
-    //
-    //         // Create a marker for each place.
-    //       markers.push(new google.maps.Marker({
-    //         map: map,
-    //         icon: icon,
-    //         title: place.name,
-    //         position: place.geometry.location
-    //       }));
-    //
-    //       if (place.geometry.viewport) {
-    //         // Only geocodes have viewport.
-    //         bounds.union(place.geometry.viewport);
-    //       } else {
-    //         bounds.extend(place.geometry.location);
-    //       }
-    //     });
-    //     map.fitBounds(bounds);
-    // });
-
     //////////////////////////////////////////////////////////////////////
 
     runSnapToRoad(flightPath[0].getPath(), true);
@@ -138,9 +149,6 @@ $(document).ready(function(){
 
     if(userPoint == 0) {
       $("#distance").html("I can't get your position, but you can track the bus above")
-    }
-    else {
-      $("#distance").html("The bus is " + timeToDest + " away")
     }
   }
 
@@ -241,7 +249,7 @@ $(document).ready(function(){
               // $('#busHistory tbody').append(markup);
             }
             //this block gets the position of the user from the browser. Hardcoded right now.
-            initMap(points, new google.maps.LatLng(22.258, 114.192))
+            updateMap(points, new google.maps.LatLng(22.258, 114.192))
           }
         },
         //error handler for server connection
