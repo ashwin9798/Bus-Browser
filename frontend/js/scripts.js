@@ -7,6 +7,7 @@ $(document).ready(function(){
   var flightPath = new Array();
   var snappedPolyline;
   var busMarker;
+  var personMarker;
   var isTrackingRealTime = true;
   //also includes:
 
@@ -24,7 +25,7 @@ $(document).ready(function(){
 
   setTimeout(function() {
     initMap();
-  }, 100)
+  }, 10)
 
   //get user position from browser
   function getPos() {
@@ -119,14 +120,26 @@ $(document).ready(function(){
     var distanceToUser = google.maps.geometry.spherical.computeDistanceBetween(uluru, userPoint)
 
     map.setCenter(uluru)
+
     //bus icon marker
+
+    if(busMarker != null) {
+      busMarker.setMap(null);
+      busMarker = null;
+    }
+
     busMarker = new google.maps.Marker({
       position: uluru,
       map: map,
       icon: 'frontend/busIcon.png'
     });
 
-    var personMarker = new google.maps.Marker({
+    if(personMarker != null) {
+      personMarker.setMap(null);
+      personMarker = null;
+    }
+
+    personMarker = new google.maps.Marker({
       position: userPoint,
       map: map,
       icon: 'frontend/personIcon.png'
@@ -160,7 +173,6 @@ $(document).ready(function(){
     for (var i = 0; i < path.b.length; i++) {
       pathValues.push(path.getAt(i).toUrlValue());
     }
-    console.log(pathValues)
     $.get('https://roads.googleapis.com/v1/snapToRoads', {
       interpolate: true,
       key: 'AIzaSyCgtJHLDHcpdKKN68yTKMZxiQczNeVhMxc',
@@ -276,7 +288,11 @@ $(document).ready(function(){
         slicedPath[i-startTime.val()] = new google.maps.LatLng(pointsDatabase[i].latitude, pointsDatabase[i].longitude)
       }
 
-      busMarker.setMap(null)
+      if(busMarker != null) {
+        busMarker.setMap(null);
+        busMarker = null;
+      }
+
       busMarker = new google.maps.Marker({
         position: slicedPath[slicedPath.length-1],
         map: map,
