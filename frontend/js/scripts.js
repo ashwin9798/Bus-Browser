@@ -7,6 +7,7 @@ $(document).ready(function(){
   var flightPath = new Array();
   var snappedPolyline;
   var busMarker;
+  var busImage;
   var personMarker;
   var isTrackingRealTime = true;
   var lastPoint;
@@ -49,11 +50,19 @@ $(document).ready(function(){
     map = new google.maps.Map(document.getElementById('map'), {
       scrollwheel: false,
       zoomControl: true,
-      minZoom: 8,
+      minZoom: 5,
       maxZoom: 16,
-      zoom: 15,
+      zoom: 12,
       center: new google.maps.LatLng(0,0)
     });
+
+    busImage = {
+      url: 'frontend/busIcon.png',
+      size: new google.maps.Size(25,25),
+      origin: null,
+      anchor: null,
+      scaledSize: new google.maps.Size(25,25)
+    };
 
     ////////////////////////////////////////////////////////////////////
     // SEARCH BOX
@@ -111,13 +120,44 @@ $(document).ready(function(){
 
         map.fitBounds(bounds);
     });
+
+    google.maps.event.addListener(map, 'zoom_changed', function() {
+      console.log(map.getZoom())
+      var pixelSizeAtZoom0 = 0.1; //the size of the icon at zoom level 0
+      var maxPixelSize = 35; //restricts the maximum size of the icon, otherwise the browser will choke at higher zoom levels trying to scale an image to millions of pixels
+
+      var zoom = map.getZoom();
+      var relativePixelSize = Math.round(pixelSizeAtZoom0*Math.pow(1.6,zoom)); // use 2 to the power of current zoom to calculate relative pixel size.  Base of exponent is 2 because relative size should double every time you zoom in
+
+      if(relativePixelSize > maxPixelSize) //restrict the maximum size of the icon
+        relativePixelSize = maxPixelSize;
+
+        //change the size of the icon
+      busMarker.setIcon({
+        url: 'frontend/busIcon.png', //marker's same icon graphic
+        size: null,//size
+        origin: null,//origin
+        anchor: null, //anchor
+        scaledSize: new google.maps.Size(relativePixelSize, relativePixelSize)
+      });
+
+      busImage = {
+        url: 'frontend/busIcon.png', //marker's same icon graphic
+        size: null,//size
+        origin: null,//origin
+        anchor: null, //anchor
+        scaledSize: new google.maps.Size(relativePixelSize, relativePixelSize)
+      }
+
+    });
   }
 
   //create the google map, with all its components
   function updateMap(points, userPoint) {
     lastPoint = points[(points.length)-1];  //the last point recorded
 
-    map.setCenter(lastPoint)
+    if(isTrackingRealTime && !destinationSearched)
+      map.setCenter(lastPoint)
 
     //bus icon marker
 
@@ -129,19 +169,8 @@ $(document).ready(function(){
     busMarker = new google.maps.Marker({
       position: lastPoint,
       map: map,
-      icon: 'frontend/busIcon.png'
+      icon: busImage
     });
-
-    if(personMarker != null) {
-      personMarker.setMap(null);
-      personMarker = null;
-    }
-
-    personMarker = new google.maps.Marker({
-      position: userPoint,
-      map: map,
-      icon: 'frontend/personIcon.png'
-    })
 
     //path of the bus is traced by coordinates.
     var pathCoords = points
@@ -154,6 +183,12 @@ $(document).ready(function(){
     });
 
     //////////////////////////////////////////////////////////////////////
+
+    if(snappedPolyline != null) {
+      console.log("hey")
+      snappedPolyline.setMap(null);
+      snappedPolyline = null;
+    }
 
     runSnapToRoad(flightPath[0].getPath(), true);
     if(!destinationSearched)
@@ -230,6 +265,7 @@ $(document).ready(function(){
   $("#trackBusButton").click(function(){
     //make an ajax GET request to the heroku server which will load from sql.
     isTrackingRealTime = true;
+
     $.ajax({
         url: "https://pure-hollows-72424.herokuapp.com/data",
         type: 'GET',
@@ -298,7 +334,7 @@ $(document).ready(function(){
       busMarker = new google.maps.Marker({
         position: slicedPath[slicedPath.length-1],
         map: map,
-        icon: 'frontend/busIcon.png'
+        icon: busImage
       });
 
       flightPath[0] = new google.maps.Polyline({
@@ -310,6 +346,7 @@ $(document).ready(function(){
       });
 
       if(snappedPolyline != null) {
+        console.log("hey")
         snappedPolyline.setMap(null);
         snappedPolyline = null;
       }
@@ -321,5 +358,6 @@ $(document).ready(function(){
     markers.forEach(function(marker) {
       marker.setMap(null);
     });
+    destinationSearched = false;
   })
 })
