@@ -11,6 +11,8 @@ $(document).ready(function(){
   var isTrackingRealTime = true;
   var lastPoint;
   var userPoint;
+  var destinationSearched = false;
+  var markers = [];
   //also includes:
 
   //snappedCoordinates
@@ -65,8 +67,6 @@ $(document).ready(function(){
         searchBox.setBounds(map.getBounds());
     });
 
-    var markers = [];
-
     searchBox.addListener('places_changed', function() {
         var places = searchBox.getPlaces();
 
@@ -74,7 +74,7 @@ $(document).ready(function(){
           return;
         }
 
-          // Clear out the old markers.
+        // Clear out the old markers.
         markers.forEach(function(marker) {
           marker.setMap(null);
         });
@@ -89,14 +89,6 @@ $(document).ready(function(){
             console.log("Returned place contains no geometry");
             return;
           }
-          // var icon = {
-          //   url: place.icon,
-          //   size: new google.maps.Size(71, 71),
-          //   origin: new google.maps.Point(0, 0),
-          //   anchor: new google.maps.Point(17, 34),
-          //   scaledSize: new google.maps.Size(25, 25)
-          // };
-
             // Create a marker for each place.
           markers.push(new google.maps.Marker({
             map: map,
@@ -105,6 +97,7 @@ $(document).ready(function(){
           }));
 
           timeToUser(lastPoint, new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng()), markers[0].title)
+          destinationSearched = true;
 
           if (place.geometry.viewport) {
             // Only geocodes have viewport.
@@ -113,6 +106,9 @@ $(document).ready(function(){
             bounds.extend(place.geometry.location);
           }
         });
+
+        bounds.extend(new google.maps.LatLng(pointsDatabase[0].latitude, pointsDatabase[0].longitude))
+
         map.fitBounds(bounds);
     });
   }
@@ -160,7 +156,8 @@ $(document).ready(function(){
     //////////////////////////////////////////////////////////////////////
 
     runSnapToRoad(flightPath[0].getPath(), true);
-    timeToUser(lastPoint, userPoint, "");
+    if(!destinationSearched)
+      timeToUser(lastPoint, userPoint, "");
 
     if(userPoint == 0) {
       $("#distance").html("I can't get your position, but you can track the bus above")
@@ -312,8 +309,17 @@ $(document).ready(function(){
           strokeWeight: 2
       });
 
-      snappedPolyline.setMap(null);
+      if(snappedPolyline != null) {
+        snappedPolyline.setMap(null);
+        snappedPolyline = null;
+      }
       runSnapToRoad(flightPath[0].getPath(), false);
     }
   });
+
+  $("#clearMarker").click(function(){
+    markers.forEach(function(marker) {
+      marker.setMap(null);
+    });
+  })
 })
