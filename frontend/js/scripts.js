@@ -14,6 +14,8 @@ $(document).ready(function(){
   var userPoint;
   var destinationSearched = false;
   var markers = [];
+  var snappedBusToDestLine;
+  var destinationMarkerLocation;
   //also includes:
 
   //snappedCoordinates
@@ -52,7 +54,7 @@ $(document).ready(function(){
       zoomControl: true,
       minZoom: 5,
       maxZoom: 16,
-      zoom: 12,
+      zoom: 13,
       center: new google.maps.LatLng(0,0)
     });
 
@@ -105,7 +107,23 @@ $(document).ready(function(){
             position: place.geometry.location
           }));
 
-          timeToUser(lastPoint, new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng()), markers[0].title)
+          destinationMarkerLocation = new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng())
+          timeToUser(lastPoint, destinationMarkerLocation, markers[0].title)
+
+          var pathToDestination = []
+          pathToDestination.push(lastPoint)
+          pathToDestination.push(destinationMarkerLocation)
+
+          var busToDestLine = new google.maps.Polyline({
+              path: pathToDestination,
+              geodesic: true,
+              strokeColor: 'green',
+              strokeOpacity: 1.0,
+              strokeWeight: 2
+          });
+
+          runSnapToRoad(busToDestLine.getPath(), true, true);
+
           destinationSearched = true;
 
           if (place.geometry.viewport) {
@@ -156,8 +174,9 @@ $(document).ready(function(){
   function updateMap(points, userPoint) {
     lastPoint = points[(points.length)-1];  //the last point recorded
 
-    if(isTrackingRealTime && !destinationSearched)
+    if(isTrackingRealTime && !destinationSearched) {
       map.setCenter(lastPoint)
+    }
 
     //bus icon marker
 
@@ -190,7 +209,7 @@ $(document).ready(function(){
       snappedPolyline = null;
     }
 
-    runSnapToRoad(flightPath[0].getPath(), true);
+    runSnapToRoad(flightPath[0].getPath(), true, false);
     if(!destinationSearched)
       timeToUser(lastPoint, userPoint, "");
 
@@ -201,7 +220,7 @@ $(document).ready(function(){
 
   //this will snap the otherwise jagged polyline to the shape of the road.
   //makes path trace look more realistic.
-  function runSnapToRoad(path, isRealTime) {
+  function runSnapToRoad(path, isRealTime, isFromBusToDestination) {
     var pathValues = [];
     var len = google.maps.geometry.spherical.computeLength(path)
     for (var i = 0; i < path.b.length; i++) {
@@ -217,7 +236,10 @@ $(document).ready(function(){
       if(!isRealTime) {
         polylineColor = 'grey'
       }
-      drawSnappedPolyline(polylineColor);
+      if(isFromBusToDestination)
+        polylineColor = 'green'
+
+      drawSnappedPolyline(polylineColor)
     });
   }
 
@@ -235,12 +257,22 @@ $(document).ready(function(){
   }
 
   function drawSnappedPolyline(color) {
-    snappedPolyline = new google.maps.Polyline({
-      path: snappedCoordinates,
-      strokeColor: color,
-      strokeWeight: 3
-    });
-    snappedPolyline.setMap(map)
+    if(color != 'green'){
+      snappedPolyline = new google.maps.Polyline({
+        path: snappedCoordinates,
+        strokeColor: color,
+        strokeWeight: 3
+      });
+      snappedPolyline.setMap(map)
+    }
+    if(color == 'green') {
+      snappedBusToDestLine = new google.maps.Polyline({
+        path: snappedCoordinates,
+        strokeColor: color,
+        strokeWeight: 3
+      });
+      snappedBusToDestLine.setMap(map)
+    }
   }
 
   //calculate how far away the bus is from the user using distance matrix.
@@ -256,8 +288,10 @@ $(document).ready(function(){
         time = data.rows[0].elements[0].duration.text
         if(destinationString == "")
           $("#distance").html("The bus is " + time + " away from you")
-        else
+        else {
           $("#distance").html("The bus is " + time + " away from " + destinationString)
+          $("#distance").css({ 'color': 'green', 'font-size': '150%'})
+        }
     });
   }
 
@@ -358,6 +392,7 @@ $(document).ready(function(){
     markers.forEach(function(marker) {
       marker.setMap(null);
     });
+    snappedBusToDestLine.setMap(null);
     destinationSearched = false;
   })
 })
