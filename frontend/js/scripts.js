@@ -122,6 +122,11 @@ $(document).ready(function(){
               strokeWeight: 2
           });
 
+          if(snappedBusToDestLine != null) {
+            snappedBusToDestLine.setMap(null);
+            snappedBusToDestLine = null;
+          }
+
           runSnapToRoad(busToDestLine.getPath(), true, true);
 
           destinationSearched = true;
@@ -392,7 +397,7 @@ $(document).ready(function(){
     markers.forEach(function(marker) {
       marker.setMap(null);
     });
-    snappedBusToDestLine.setMap(null);
+    snappedBusToDestLine = null;
     destinationSearched = false;
   })
 })

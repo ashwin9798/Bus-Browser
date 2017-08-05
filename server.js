@@ -3,15 +3,16 @@ var bodyParser = require('body-parser');
 var mysql = require('mysql');
 var cors = require('cors');
 var path = require('path');
+var config = require('./config')
 
 var app = express();
 
 //database configuration on Heroku ClearDB
 var db_config = {
-    host            : 'us-cdbr-iron-east-03.cleardb.net',
-    user            : 'b53283652bc954',
-    password        : '86127b66',
-    database        : 'heroku_68e1a2399363654'
+    host            : config.host,
+    user            : config.user,
+    password        : config.password,
+    database        : config.database
 };
 
 //this is the client that will open the connection
