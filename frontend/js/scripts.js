@@ -16,6 +16,8 @@ $(document).ready(function(){
   var markers = [];
   var snappedBusToDestLine;
   var destinationMarkerLocation;
+  var directionsService = new google.maps.DirectionsService;
+  var directionsDisplay = new google.maps.DirectionsRenderer;
   //also includes:
 
   //snappedCoordinates
@@ -57,6 +59,9 @@ $(document).ready(function(){
       zoom: 13,
       center: new google.maps.LatLng(0,0)
     });
+
+    directionsDisplay.setMap(map);
+    directionsDisplay.setOptions( { suppressMarkers: true, polylineOptions: { strokeColor: "green" } });
 
     busImage = {
       url: 'frontend/busIcon.png',
@@ -107,27 +112,40 @@ $(document).ready(function(){
             position: place.geometry.location
           }));
 
-          destinationMarkerLocation = new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng())
-          timeToUser(lastPoint, destinationMarkerLocation, markers[0].title)
 
-          var pathToDestination = []
-          pathToDestination.push(lastPoint)
-          pathToDestination.push(destinationMarkerLocation)
-
-          var busToDestLine = new google.maps.Polyline({
-              path: pathToDestination,
-              geodesic: true,
-              strokeColor: 'green',
-              strokeOpacity: 1.0,
-              strokeWeight: 2
-          });
-
-          if(snappedBusToDestLine != null) {
-            snappedBusToDestLine.setMap(null);
-            snappedBusToDestLine = null;
+          directionsService.route({
+            origin: lastPoint,
+            destination: new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng()),
+            travelMode: 'DRIVING'
+          }, function(response, status) {
+            if (status === 'OK') {
+              directionsDisplay.setDirections(response);
+          } else {
+              window.alert('Directions request failed due to ' + status);
           }
+        });
 
-          runSnapToRoad(busToDestLine.getPath(), true, true);
+          // destinationMarkerLocation = new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng())
+          timeToUser(lastPoint, destinationMarkerLocation, markers[0].title)
+          //
+          // var pathToDestination = []
+          // pathToDestination.push(lastPoint)
+          // pathToDestination.push(destinationMarkerLocation)
+          //
+          // var busToDestLine = new google.maps.Polyline({
+          //     path: pathToDestination,
+          //     geodesic: true,
+          //     strokeColor: 'green',
+          //     strokeOpacity: 1.0,
+          //     strokeWeight: 2
+          // });
+          //
+          // if(snappedBusToDestLine != null) {
+          //   snappedBusToDestLine.setMap(null);
+          //   snappedBusToDestLine = null;
+          // }
+          //
+          // runSnapToRoad(busToDestLine.getPath(), true, true);
 
           destinationSearched = true;
 
@@ -397,6 +415,7 @@ $(document).ready(function(){
     markers.forEach(function(marker) {
       marker.setMap(null);
     });
+    markers = [];
     snappedBusToDestLine = null;
     destinationSearched = false;
   })
