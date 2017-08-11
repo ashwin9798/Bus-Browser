@@ -125,27 +125,8 @@ $(document).ready(function(){
           }
         });
 
-          // destinationMarkerLocation = new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng())
+          destinationMarkerLocation = new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng())
           timeToUser(lastPoint, destinationMarkerLocation, markers[0].title)
-          //
-          // var pathToDestination = []
-          // pathToDestination.push(lastPoint)
-          // pathToDestination.push(destinationMarkerLocation)
-          //
-          // var busToDestLine = new google.maps.Polyline({
-          //     path: pathToDestination,
-          //     geodesic: true,
-          //     strokeColor: 'green',
-          //     strokeOpacity: 1.0,
-          //     strokeWeight: 2
-          // });
-          //
-          // if(snappedBusToDestLine != null) {
-          //   snappedBusToDestLine.setMap(null);
-          //   snappedBusToDestLine = null;
-          // }
-          //
-          // runSnapToRoad(busToDestLine.getPath(), true, true);
 
           destinationSearched = true;
 
