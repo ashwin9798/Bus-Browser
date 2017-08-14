@@ -396,7 +396,6 @@ $(document).ready(function(){
     markers.forEach(function(marker) {
       marker.setMap(null);
     });
-    markers = [];
     snappedBusToDestLine = null;
     destinationSearched = false;
   })
