@@ -26,7 +26,6 @@ $(document).ready(function(){
 
   //auto refresh the page every 8 seconds, for incoming coordinates.
   setInterval(function() {
-    console.log("hi")
     if(isTrackingRealTime) {
       $("#trackBusButton").trigger('click');
     }
@@ -144,7 +143,6 @@ $(document).ready(function(){
     });
 
     google.maps.event.addListener(map, 'zoom_changed', function() {
-      console.log(map.getZoom())
       var pixelSizeAtZoom0 = 0.1; //the size of the icon at zoom level 0
       var maxPixelSize = 35; //restricts the maximum size of the icon, otherwise the browser will choke at higher zoom levels trying to scale an image to millions of pixels
 
@@ -208,12 +206,11 @@ $(document).ready(function(){
     //////////////////////////////////////////////////////////////////////
 
     if(snappedPolyline != null) {
-      console.log("hey")
       snappedPolyline.setMap(null);
       snappedPolyline = null;
     }
 
-    runSnapToRoad(flightPath[0].getPath(), true, false);
+    runSnapToRoad(flightPath[0].getPath(), true);
     if(!destinationSearched)
       timeToUser(lastPoint, userPoint, "");
 
@@ -224,7 +221,7 @@ $(document).ready(function(){
 
   //this will snap the otherwise jagged polyline to the shape of the road.
   //makes path trace look more realistic.
-  function runSnapToRoad(path, isRealTime, isFromBusToDestination) {
+  function runSnapToRoad(path, isRealTime) {
     var pathValues = [];
     var len = google.maps.geometry.spherical.computeLength(path)
     for (var i = 0; i < path.b.length; i++) {
@@ -240,9 +237,6 @@ $(document).ready(function(){
       if(!isRealTime) {
         polylineColor = 'grey'
       }
-      if(isFromBusToDestination)
-        polylineColor = 'green'
-
       drawSnappedPolyline(polylineColor)
     });
   }
@@ -268,14 +262,6 @@ $(document).ready(function(){
         strokeWeight: 3
       });
       snappedPolyline.setMap(map)
-    }
-    if(color == 'green') {
-      snappedBusToDestLine = new google.maps.Polyline({
-        path: snappedCoordinates,
-        strokeColor: color,
-        strokeWeight: 3
-      });
-      snappedBusToDestLine.setMap(map)
     }
   }
 
@@ -384,7 +370,6 @@ $(document).ready(function(){
       });
 
       if(snappedPolyline != null) {
-        console.log("hey")
         snappedPolyline.setMap(null);
         snappedPolyline = null;
       }
@@ -393,10 +378,13 @@ $(document).ready(function(){
   });
 
   $("#clearMarker").click(function(){
+    directionsDisplay.setMap(null);
+
     markers.forEach(function(marker) {
       marker.setMap(null);
     });
-    snappedBusToDestLine = null;
+    markers = [];
     destinationSearched = false;
   })
+
 })
