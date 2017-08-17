@@ -59,6 +59,8 @@ $(document).ready(function(){
       center: new google.maps.LatLng(0,0)
     });
 
+    $("#clearMarker").prop("disabled", true);
+
     directionsDisplay.setMap(map);
     directionsDisplay.setOptions( { suppressMarkers: true, polylineOptions: { strokeColor: "green" } });
 
@@ -119,6 +121,7 @@ $(document).ready(function(){
           }, function(response, status) {
             if (status === 'OK') {
               directionsDisplay.setDirections(response);
+              $("#clearMarker").prop("disabled", false);
           } else {
               window.alert('Directions request failed due to ' + status);
           }
@@ -385,6 +388,7 @@ $(document).ready(function(){
     });
     markers = [];
     destinationSearched = false;
+    $("#clearMarker").prop("disabled", true);
   })
 
 })
