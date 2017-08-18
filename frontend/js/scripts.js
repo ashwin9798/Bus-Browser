@@ -114,18 +114,7 @@ $(document).ready(function(){
           }));
 
 
-          directionsService.route({
-            origin: lastPoint,
-            destination: new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng()),
-            travelMode: 'DRIVING'
-          }, function(response, status) {
-            if (status === 'OK') {
-              directionsDisplay.setDirections(response);
-              $("#clearMarker").prop("disabled", false);
-          } else {
-              window.alert('Directions request failed due to ' + status);
-          }
-        });
+          drawPathToUser();
 
           destinationMarkerLocation = new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng())
           timeToUser(lastPoint, destinationMarkerLocation, markers[0].title)
@@ -217,6 +206,10 @@ $(document).ready(function(){
     if(!destinationSearched)
       timeToUser(lastPoint, userPoint, "");
 
+    if(markers.size()!=0) {
+      drawPathToUser();
+    }
+
     if(userPoint == 0) {
       $("#distance").html("I can't get your position, but you can track the bus above")
     }
@@ -286,6 +279,21 @@ $(document).ready(function(){
           $("#distance").css({ 'color': 'green', 'font-size': '150%'})
         }
     });
+  }
+
+  function drawPathToUser() {
+    directionsService.route({
+      origin: lastPoint,
+      destination: new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng()),
+      travelMode: 'DRIVING'
+    }, function(response, status) {
+      if (status === 'OK') {
+        directionsDisplay.setDirections(response);
+        $("#clearMarker").prop("disabled", false);
+    } else {
+        window.alert('Directions request failed due to ' + status);
+    }
+  });
   }
 
   //run this function when the button requesting the map is clicked.
@@ -376,6 +384,7 @@ $(document).ready(function(){
         snappedPolyline.setMap(null);
         snappedPolyline = null;
       }
+      directionsDisplay.setMap(null);
       runSnapToRoad(flightPath[0].getPath(), false);
     }
   });
