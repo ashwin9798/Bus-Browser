@@ -206,7 +206,9 @@ $(document).ready(function(){
     if(!destinationSearched)
       timeToUser(lastPoint, userPoint, "");
 
-    if(markers.size()!=0) {
+
+    if(markers.length != 0 && destinationSearched) {
+      console.log("DRAW")
       drawPathToUser();
     }
 
@@ -288,6 +290,7 @@ $(document).ready(function(){
       travelMode: 'DRIVING'
     }, function(response, status) {
       if (status === 'OK') {
+        directionsDisplay.setMap(map);
         directionsDisplay.setDirections(response);
         $("#clearMarker").prop("disabled", false);
     } else {
