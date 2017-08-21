@@ -10,8 +10,8 @@ $(document).ready(function(){
   var busImage;
   var personMarker;
   var isTrackingRealTime = true;
-  var lastPoint;
-  var userSpot;
+  var lastPoint;  //last recorded point of bus
+  var userSpot;   //user location as google latLng
   var destinationSearched = false;
   var markers = [];
   var snappedBusToDestLine;
@@ -32,15 +32,17 @@ $(document).ready(function(){
     }
   }, 8000);
 
+  //initialize the map as soon as the webpage renders
   setTimeout(function() {
     initMap();
   }, 10)
 
+  //get user position as soon as the webpage renders
   setTimeout(function() {
     getPos();
   }, 100)
 
-  //get user position from browser
+  //function to get user position from browser
   function getPos() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(function(position) {
@@ -55,7 +57,9 @@ $(document).ready(function(){
   $("#distanceToUser").hide()
   $("#distanceToDestination").hide()
 
+  //function to initialize the map on the page.
   function initMap() {
+    //use the maps api to create a new map.
     map = new google.maps.Map(document.getElementById('map'), {
       scrollwheel: false,
       zoomControl: true,
@@ -67,9 +71,11 @@ $(document).ready(function(){
 
     $("#clearMarker").prop("disabled", true);
 
+    //the directions display is the line from the bus to the searched destination. setMap is used to tell it which map it should be displayed on.
     directionsDisplay.setMap(map);
     directionsDisplay.setOptions( { suppressMarkers: true, polylineOptions: { strokeColor: "green" } });
 
+    //an image which will resize depending on the zoom
     busImage = {
       url: 'frontend/busIcon.png',
       size: new google.maps.Size(25,25),
@@ -79,7 +85,7 @@ $(document).ready(function(){
     };
 
     ////////////////////////////////////////////////////////////////////
-    // SEARCH BOX
+    // SEARCH BOX. This is all basically taken from the api docs from google.
     ////////////////////////////////////////////////////////////////////
     var input = document.getElementById('pac-input');
     var searchBox = new google.maps.places.SearchBox(input);
@@ -90,6 +96,7 @@ $(document).ready(function(){
         searchBox.setBounds(map.getBounds());
     });
 
+    //listen for keystrokes in the search bar
     searchBox.addListener('places_changed', function() {
         var places = searchBox.getPlaces();
 
@@ -119,10 +126,13 @@ $(document).ready(function(){
             position: place.geometry.location
           }));
 
+          //draw the line showing directions
+          drawPathToDest();
 
-          drawPathToUser();
-
+          //create the marker that displays the destination on the map.
           destinationMarkerLocation = new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng())
+
+          //call the function which calculates time to the destination
           timeToUser(lastPoint, destinationMarkerLocation, markers[0].title)
 
           destinationSearched = true;
@@ -140,6 +150,7 @@ $(document).ready(function(){
         map.fitBounds(bounds);
     });
 
+    //listen for zoom changes to change the size of the icon (smaller when zoomed out, bigger when zoomed in)
     google.maps.event.addListener(map, 'zoom_changed', function() {
       var pixelSizeAtZoom0 = 0.1; //the size of the icon at zoom level 0
       var maxPixelSize = 35; //restricts the maximum size of the icon, otherwise the browser will choke at higher zoom levels trying to scale an image to millions of pixels
@@ -170,7 +181,7 @@ $(document).ready(function(){
     });
   }
 
-  //create the google map, with all its components
+  //update the google map to track the real time position of the bus
   function updateMap(points) {
     lastPoint = points[(points.length)-1];  //the last point recorded
 
@@ -179,7 +190,6 @@ $(document).ready(function(){
     }
 
     //bus icon marker
-
     if(busMarker != null) {
       busMarker.setMap(null);
       busMarker = null;
@@ -208,13 +218,15 @@ $(document).ready(function(){
       snappedPolyline = null;
     }
 
+    //function to smoothen the line and "snap" it to the road that it was probably travelling on using an api.
     runSnapToRoad(flightPath[0].getPath(), true);
 
+    //get time to the user
     timeToUser(lastPoint, userSpot, "");
 
 
     if(markers.length != 0 && destinationSearched) {
-      drawPathToUser();
+      drawPathToDest();
     }
 
     if(!userSpot) {
@@ -244,7 +256,7 @@ $(document).ready(function(){
     });
   }
 
-  //helper functions for snapping the road.
+  //helper function for snapping the road.
   function processSnapToRoadResponse(data) {
     snappedCoordinates = [];
     placeIdArray = [];
@@ -257,6 +269,7 @@ $(document).ready(function(){
       }
   }
 
+  //helper function for drawing the snapped line
   function drawSnappedPolyline(color) {
     if(color != 'green'){
       snappedPolyline = new google.maps.Polyline({
@@ -268,7 +281,7 @@ $(document).ready(function(){
     }
   }
 
-  //calculate how far away the bus is from the user using distance matrix.
+  //calculate how far away the bus is from the user using distance matrix api.
   function timeToUser(mostRecentPoint, destination, destinationString) {
     var time;
     var service = new google.maps.DistanceMatrixService();
@@ -299,7 +312,8 @@ $(document).ready(function(){
     });
   }
 
-  function drawPathToUser() {
+  //use the directions service api to draw the directions on the map.
+  function drawPathToDest() {
     directionsService.route({
       origin: lastPoint,
       destination: new google.maps.LatLng(markers[0].position.lat(), markers[0].position.lng()),
@@ -335,6 +349,8 @@ $(document).ready(function(){
             $('#busHistory tr:not(#header)').remove()
             //store in the points array as LatLng objects, which are required for API.
             for(var i=0; i < data.length; i++) {
+
+              //if we encounter new points in the database, only then will we look at them.
               if(i >= pointsDatabase.length) {
                   pointsDatabase[i] = data[i]
                   $('#startTime').append($('<option>', {
@@ -346,6 +362,7 @@ $(document).ready(function(){
                     text: pointsDatabase[i].timeAdded
                   }))
               }
+
               points[i] = new google.maps.LatLng(parseFloat(data[i].latitude).toFixed(3), parseFloat(data[i].longitude).toFixed(3));
               markup = '<tr><td>' + data[i].timeAdded + '</td><td>' + data[i].latitude + '</td><td>' + data[i].longitude + '</td><td></tr>';
               // $('#busHistory tbody').append(markup);
