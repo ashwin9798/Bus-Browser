@@ -11,7 +11,7 @@ $(document).ready(function(){
   var personMarker;
   var isTrackingRealTime = true;
   var lastPoint;
-  var userPoint;
+  var userSpot;
   var destinationSearched = false;
   var markers = [];
   var snappedBusToDestLine;
@@ -36,12 +36,15 @@ $(document).ready(function(){
     initMap();
   }, 10)
 
+  setTimeout(function() {
+    getPos();
+  }, 100)
+
   //get user position from browser
   function getPos() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(function(position) {
-          console.log(position.coords.latitude)
-          return new google.maps.LatLng(parseFloat(position.coords.latitude), parseFloat(position.coords.longitude))
+          userSpot = new google.maps.LatLng(parseFloat(position.coords.latitude), parseFloat(position.coords.longitude))
       });
     }
   }
@@ -168,7 +171,7 @@ $(document).ready(function(){
   }
 
   //create the google map, with all its components
-  function updateMap(points, userPoint) {
+  function updateMap(points) {
     lastPoint = points[(points.length)-1];  //the last point recorded
 
     if(isTrackingRealTime && !destinationSearched) {
@@ -206,15 +209,15 @@ $(document).ready(function(){
     }
 
     runSnapToRoad(flightPath[0].getPath(), true);
-    if(!destinationSearched)
-      timeToUser(lastPoint, userPoint, "");
+
+    timeToUser(lastPoint, userSpot, "");
 
 
     if(markers.length != 0 && destinationSearched) {
       drawPathToUser();
     }
 
-    if(userPoint == 0) {
+    if(!userSpot) {
       $("#distance").html("I can't get your position, but you can track the bus above")
     }
   }
@@ -269,6 +272,8 @@ $(document).ready(function(){
   function timeToUser(mostRecentPoint, destination, destinationString) {
     var time;
     var service = new google.maps.DistanceMatrixService();
+    console.log(destination)
+
     service.getDistanceMatrix(
     {
       origins: [mostRecentPoint],
@@ -278,6 +283,8 @@ $(document).ready(function(){
         time = data.rows[0].elements[0].duration.text
         if(destinationString == "") {
           $("#distanceToUser").show()
+          if(!time)
+            $("#distanceToUser").html("Time to you: loading..")
           $("#distanceToUser").html("Time to you: " + time)
           timeToYou = time;
         }
@@ -319,8 +326,6 @@ $(document).ready(function(){
         success: function(data){
           //store the gps coordinates from the object into an array.
           var points = new Array();
-          //userPoint stores the position of the user (received from browser)
-          var userPoint;
           //error message for when the database request is empty
           if(data.length == 0){
             $("#error").html("Oops, no data on the requested bus :(");
@@ -346,7 +351,7 @@ $(document).ready(function(){
               // $('#busHistory tbody').append(markup);
             }
             //this block gets the position of the user from the browser. Hardcoded right now.
-            updateMap(points, new google.maps.LatLng(22.258, 114.192))
+            updateMap(points)
           }
         },
         //error handler for server connection
