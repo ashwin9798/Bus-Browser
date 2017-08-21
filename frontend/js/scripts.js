@@ -18,6 +18,7 @@ $(document).ready(function(){
   var destinationMarkerLocation;
   var directionsService = new google.maps.DirectionsService;
   var directionsDisplay = new google.maps.DirectionsRenderer;
+  var timeToYou;
   //also includes:
 
   //snappedCoordinates
@@ -48,6 +49,8 @@ $(document).ready(function(){
   var map;
 
   $("#busHistory").hide()
+  $("#distanceToUser").hide()
+  $("#distanceToDestination").hide()
 
   function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
@@ -208,7 +211,6 @@ $(document).ready(function(){
 
 
     if(markers.length != 0 && destinationSearched) {
-      console.log("DRAW")
       drawPathToUser();
     }
 
@@ -274,12 +276,19 @@ $(document).ready(function(){
       travelMode: 'DRIVING'
     }, function(data) {
         time = data.rows[0].elements[0].duration.text
-        if(destinationString == "")
-          $("#distance").html("The bus is " + time + " away from you")
-        else {
-          $("#distance").html("The bus is " + time + " away from " + destinationString)
-          $("#distance").css({ 'color': 'green', 'font-size': '150%'})
+        if(destinationString == "") {
+          $("#distanceToUser").show()
+          $("#distanceToUser").html("Time to you: " + time)
+          timeToYou = time;
         }
+        else {
+          $("#distanceToUser").show()
+          $("#distanceToUser").html("Time to you: " + timeToYou)
+          $("#distanceToDestination").show()
+          $("#distanceToDestination").html("Time to destination: " +  time + " away from " + destinationString)
+        }
+        $("#distanceToUser").css({ 'color': 'green', 'font-size': '150%'})
+        $("#distanceToDestination").css({ 'color': 'blue', 'font-size': '150%'})
     });
   }
 
