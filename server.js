@@ -60,24 +60,28 @@ router.get('/', function(req, res) {
 var dataRoute = router.route('/data')
 
 dataRoute.get(function(req, res) {
-    mysqlClient.query("(SELECT * FROM gps_data_table ORDER BY id DESC LIMIT 5) ORDER BY id ASC", function(err, result, fields) {
+    mysqlClient.query("(SELECT * FROM gps_data_table ORDER BY id DESC LIMIT 100) ORDER BY id ASC", function(err, result, fields) {
         if(err) throw err;
         res.json(result)
     })
 });
 
 dataRoute.post(function(req, res) {
-    console.log("hello")
-    let payload = {
-      timeAdded: req.body.time,
-      latitude: req.body.latitude,
-      longitude: req.body.longitude
+    if(req.body.time == nan || req.body.latitude == 0 && req.body.longitude == 0)
+      res.json({message: "gps is not getting a fix"})
+    else {
+      let payload = {
+        timeAdded: req.body.time,
+        latitude: req.body.latitude,
+        longitude: req.body.longitude
+      }
+
+      var sql = "INSERT INTO gps_data_table SET ?"
+      mysqlClient.query(sql, payload, function (err, rows) {
+        if (err) throw err;
+        res.json({message: "you posted successfully!!"})
+      });
     }
-    var sql = "INSERT INTO gps_data_table SET ?"
-    mysqlClient.query(sql, payload, function (err, rows) {
-      if (err) throw err;
-      res.json({message: "you posted successfully!!"})
-    });
 })
 
 //the raspberry pi will post data to the database through this post request at the same root url.
